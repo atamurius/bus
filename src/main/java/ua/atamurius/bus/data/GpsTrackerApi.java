@@ -4,7 +4,10 @@ import static java.net.URLEncoder.encode;
 import static java.util.Arrays.asList;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
 import com.google.api.client.http.GenericUrl;
@@ -12,6 +15,7 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.JsonString;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.Key;
 
@@ -47,14 +51,14 @@ public class GpsTrackerApi {
 	}
 	
 	public static class Car {
-		@Key String CarId;
-		@Key String route_id;
-		@Key String inzone;
-		@Key String CarName;
-		@Key double X;
-		@Key double Y;
-		@Key double pX;
-		@Key double pY;
+		@Key public String CarId;
+		@Key public String route_id;
+		@Key public String inzone;
+		@Key public String CarName;
+		@Key @JsonString public BigDecimal X;
+		@Key @JsonString public BigDecimal Y;
+		@Key public double pX;
+		@Key public double pY;
 		
 		public boolean inZone() {
 			return TRUE.equals(inzone);
@@ -83,19 +87,28 @@ public class GpsTrackerApi {
 	}
 	
 	public static class RoutePoint {
-		@Key double lat;
-		@Key double lng;
-		@Key String direction;
+		@Key @JsonString public BigDecimal lat;
+		@Key @JsonString public BigDecimal lng;
+		@Key public String direction;
 
 		@Override
 		public String toString() {
 			return "RoutePoint [lat=" + lat + ", lng=" + lng + ", direction="
 					+ direction + "]";
 		}
+		
+		public boolean isForward() {
+		    return TRUE.equals(direction);
+		}
 	}
 	
+	private Map<String, String> routeIds = new HashMap<String, String>();
+	
 	private String getRouteId(String id) throws IOException {
-		return request(RouteInfo[].class, "marw", "id", id)[0].id;
+	    if (! routeIds.containsKey(id)) {
+	        routeIds.put(id, request(RouteInfo[].class, "marw", "id", id)[0].id);
+	    }
+		return routeIds.get(id);
 	}
 	
 	public List<RoutePoint> getRoute(String id) throws IOException {
@@ -104,11 +117,8 @@ public class GpsTrackerApi {
 	
 	// --- stops --------------------------------------------------------------
 	
-	public static class Stop {
-		@Key String name;
-		@Key String direction;
-		@Key double lat;
-		@Key double lng;
+	public static class Stop extends RoutePoint {
+		@Key public String name;
 
 		@Override
 		public String toString() {

@@ -9,8 +9,21 @@
         <servlet-name>Test</servlet-name>
         <servlet-class>ua.atamurius.bus.Test</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>JsonRoute</servlet-name>
+        <servlet-class>ua.atamurius.bus.web.JsonRoute</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>JsonCars</servlet-name>
+        <servlet-class>ua.atamurius.bus.web.JsonCars</servlet-class>
+    </servlet>
+    
     <servlet-mapping>
-        <servlet-name>Test</servlet-name>
-        <url-pattern>/test</url-pattern>
+        <servlet-name>JsonRoute</servlet-name>
+        <url-pattern>/api/route</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>JsonCars</servlet-name>
+        <url-pattern>/api/cars</url-pattern>
     </servlet-mapping>
 </web-app>
