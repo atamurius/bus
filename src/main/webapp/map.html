@@ -2,16 +2,19 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 		<script>
 			var cars = {};
 			var stops = [];
 			var map;
+			var id = window.location.search;
+			id = (id.length == 0) ? 17 : id.substr(1);
 			$(function(){
-				$.getJSON('/api/route', {id: 17}, function(route) {
+				$.getJSON('/api/route', {id: id}, function(route) {
 				    var myOptions = {
-				        mapTypeId: google.maps.MapTypeId.ROADMAP
+				        mapTypeId: google.maps.MapTypeId.ROADMAP,
+				        disableDefaultUI: false
 				    }
 				    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 					var bounds = new google.maps.LatLngBounds();
@@ -47,14 +50,13 @@
 					map.fitBounds(bounds);
 					window.setInterval(updateCarPositions, 2000);
 					google.maps.event.addListener(map, 'zoom_changed', function() {
-						console.log(map.getZoom());
 						var visible = map.getZoom() > 14;
 						$.each(stops, function(i, s) { s.setVisible(visible); });
 					});
 				});
 			});
 			function updateCarPositions() {
-				$.get('/api/cars', {id: 17}, function(carPositions) {
+				$.get('/api/cars', {id: id}, function(carPositions) {
 					$.each(carPositions, function(i,car) {
 						var pos = new google.maps.LatLng(car.lat, car.lng);
 						var icon = {
@@ -67,12 +69,13 @@
 							cars[car.id].setIcon(icon);
 						}
 						else {
-							cars[car.id] = new google.maps.Marker({
+							cars[car.id] = 
+								new google.maps.Marker({
 							      position: pos,
 							      map: map,
-							      title: "18",
+							      title: id,
 							      icon: icon
-						    });
+						    	});
 						}
 					});
 				});

@@ -117,7 +117,7 @@ public class TrackerFacade {
     }
     
     public List<WayPoint> getCars(String id) throws IOException {
-    	Route route = getRoute(id);
+//    	Route route = getRoute(id);
     	List<WayPoint> res = new ArrayList<WayPoint>();
         for (Car p : api.getCars(id)) {
             if (p.inZone()) {
