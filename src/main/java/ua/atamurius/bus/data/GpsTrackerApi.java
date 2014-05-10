@@ -57,8 +57,8 @@ public class GpsTrackerApi {
 		@Key public String CarName;
 		@Key @JsonString public BigDecimal X;
 		@Key @JsonString public BigDecimal Y;
-		@Key public double pX;
-		@Key public double pY;
+		@Key @JsonString public BigDecimal pX;
+		@Key @JsonString public BigDecimal pY;
 		
 		public boolean inZone() {
 			return TRUE.equals(inzone);
