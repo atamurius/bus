@@ -8,29 +8,34 @@
 	id = (id.length == 0) ? "17" : id.substr(1);
 
 	var gm = google.maps;
+
 	var ICON_STOP = {
 		url: '/images/stop.png',
 		size: new gm.Size(32, 37),
 		anchor: new gm.Point(16, 35)
 	};
 	
+	var UPDATE_INTERVAL = 2000;
+	var STOP_TIME = 10000;
+	
 	var ICON_CAR_STEADY = {
 		path: "M16,0C7.164,0,0,7.164,0,16s7.164,16,16,16s16-7.164,16-16S24.836,0,16,0z M16.031,19.934 "+
 			"c-2.188,0-3.965-1.773-3.965-3.965c0-2.195,1.777-3.969,3.965-3.969C18.227,12,20,13.773,20,15.969 "+
 			"C20,18.16,18.227,19.934,16.031,19.934z",
 		anchor: new google.maps.Point(16,17),
-		scale: 0.5,
-		fillColor: '#000055',
-		fillOpacity: 0.7,
+		scale: 0.6,
+		fillColor: '#0000CC',
+		fillOpacity: 0.8,
 		strokeColor: 'white'
 	};
 	var ICON_CAR_MOVING = {
 		path: "M16,0C7.164,0,0,7.164,0,16s7.164,16,16,16s16-7.164,16-16S24.836,0,16,0z M10,24V8l16.008,8L10,24z",
 		anchor: new google.maps.Point(16,17),
-		scale: 0.5,
+		scale: 0.6,
 		fillColor: '#0000CC',
 		fillOpacity: 1,
-		strokeColor: 'white'
+		strokeColor: 'white',
+		angle: -90
 	};
 	
 	function getMap() {
@@ -64,18 +69,29 @@
 			    strokeWeight: 4
 			});
 			$.each(route.stops, function(i, stop) {
-				stops.push(new gm.Marker({
-				      position: toPoint(stop),
+				var pos = toPoint(stop);
+				var marker = new gm.Marker({
+				      position: pos,
 				      map: map,
 				      title: stop.id,
 				      icon: ICON_STOP,
+				      flat: true,
 				      zIndex: -1,
 				      visible: false
-			    }));
+			    });
+				stops.push(marker);
+				var tip = new gm.InfoWindow({
+					content: stop.id,
+					position: pos
+				});
+				gm.event.addListener(marker, 'click', function() {
+					console.log(tip);
+					tip.open(map);
+				});
 			});
 			path.setMap(map);
 			map.fitBounds(bounds);
-			window.setInterval(updateCarPositions, 2000);
+			window.setInterval(updateCarPositions, UPDATE_INTERVAL);
 			gm.event.addListener(map, 'zoom_changed', function() {
 				var visible = map.getZoom() > 14;
 				$.each(stops, function(i, s) { s.setVisible(visible); });
@@ -94,10 +110,11 @@
 				if (! cars[car.id]) {
 					cars[car.id] = {
 						version: version,
+						id: car.id,
+						standingTicks: 0,
 						marker: new gm.Marker({
 					      position: pos,
 					      map: map,
-					      title: id,
 					      icon: ICON_CAR_STEADY
 				    	})
 					};
@@ -113,13 +130,28 @@
 	function updateCarPosition(pos, car) {
 		car.version = version;
 		var last = car.marker.getPosition();
-		if (car.lastPosition != last)
+		if (! last.equals(pos)) {
 			car.lastPosition = last;
-		car.marker.setPosition(pos);
-		var icon = car.marker.getIcon();
-		if (icon == ICON_CAR_STEADY)
-			icon = $.extend({}, ICON_CAR_MOVING);
+			car.standingTicks = 0;
+		}
+		else
+			car.standingTicks++;
 		
+		car.marker.setPosition(pos);
+
+		var icon = car.marker.getIcon();
+		if (car.standingTicks*UPDATE_INTERVAL > STOP_TIME || ! car.lastPosition) {
+			icon = ICON_CAR_STEADY;
+		}
+		else {
+			if (icon == ICON_CAR_STEADY)
+				icon = $.extend({}, ICON_CAR_MOVING);
+			
+			if (car.lastPosition) {
+				var heading = gm.geometry.spherical.computeHeading;
+				icon.rotation = heading(car.lastPosition, pos) + ICON_CAR_MOVING.angle;
+			}
+		}
 		car.marker.setIcon(icon);
 	}
 
