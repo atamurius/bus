@@ -1,0 +1,17 @@
+html {
+	height:100%;
+}
+body {
+	margin: 0; 
+	padding: 0; 
+	height: 100%;
+}
+#map_canvas { 
+	height: 100% 
+}
+input:focus {
+    outline: 0 none;
+}
+textarea:focus {
+    outline: 0 none;
+}
